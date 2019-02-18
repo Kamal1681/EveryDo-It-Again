@@ -9,7 +9,21 @@
 import UIKit
 import CoreData
 
-class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate {
+class MasterViewController: UITableViewController, NSFetchedResultsControllerDelegate, DetailControllerDelegate {
+    func saveStatus(detailItem: ToDo) {
+        
+        let context = self.fetchedResultsController.managedObjectContext
+        do {
+           // context.delete(detailItem)
+            try context.save()
+            
+        }
+        catch {
+            let nserror = error as NSError
+            fatalError("Unresolved error \(nserror), \(nserror.userInfo)")
+        }
+    }
+    
 
     var detailViewController: DetailViewController? = nil
     var managedObjectContext: NSManagedObjectContext? = nil
@@ -36,16 +50,14 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     @objc
     func insertNewObject(_ sender: Any) {
         let context = self.fetchedResultsController.managedObjectContext
-      
-        //let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: context)!
-        
-        //let toDo = NSManagedObject(entity: entity, insertInto: context)
     
-        let defaultTitle = UserDefaults.standard.string(forKey: "ToDo Title") ?? "Default Title"
+        let defaultTitle = UserDefaults.standard.string(forKey: "ToDo Title")
     
-        let defaultDescription = UserDefaults.standard.string(forKey: "ToDo Description") ?? "Default Description"
+        let defaultDescription = UserDefaults.standard.string(forKey: "ToDo Description")
      
         let defaultPriority = UserDefaults.standard.integer(forKey: "ToDo Priority")
+        
+        let defaultStatus = UserDefaults.standard.string(forKey: "ToDo Status") ?? "Pending"
         
         let alertController = UIAlertController(title: "New ToDo", message: "Enter your todo item", preferredStyle: .alert)
         
@@ -56,7 +68,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         }
         alertController.addTextField {(descriptionText: UITextField) in
             descriptionText.text = defaultDescription
-            descriptionText.placeholder = "Descrioption"
+            descriptionText.placeholder = "Description"
         }
         alertController.addTextField {(priorityText: UITextField) in
             priorityText.text = defaultPriority.description
@@ -68,6 +80,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             newToDo.title = alertController.textFields![0].text ?? defaultTitle
             newToDo.toDoDescription = alertController.textFields![1].text ?? defaultDescription
             newToDo.priorityNumber = Int32(alertController.textFields![2].text ?? "0")!
+            newToDo.isComplete = false
             
             // Save the context.
             do {
@@ -91,8 +104,10 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
             let object = fetchedResultsController.object(at: indexPath)
                 let controller = (segue.destination as! UINavigationController).topViewController as! DetailViewController
                 controller.detailItem = object
+                
                 controller.navigationItem.leftBarButtonItem = splitViewController?.displayModeButtonItem
                 controller.navigationItem.leftItemsSupplementBackButton = true
+                controller.delegate = self
             }
         }
     }
