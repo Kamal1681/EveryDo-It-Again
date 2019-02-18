@@ -37,28 +37,31 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     func insertNewObject(_ sender: Any) {
         let context = self.fetchedResultsController.managedObjectContext
       
-        let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: context)!
+        //let entity = NSEntityDescription.entity(forEntityName: "ToDo", in: context)!
         
         //let toDo = NSManagedObject(entity: entity, insertInto: context)
     
-        let defaults = UserDefaults.standard
-        
-        defaults.set("Default todo title", forKey: "ToDo Title")
-        let defaultTitle = defaults.string(forKey: "ToDo Title")
-        
-        defaults.set("Default todo Description", forKey: "ToDo Description")
-        let defaultDescription = defaults.string(forKey: "ToDo Description")
-        
-        defaults.set(0, forKey: "ToDo Priority")
-        let defaultPriority = defaults.integer(forKey: "ToDo Priority")
-        
+        let defaultTitle = UserDefaults.standard.string(forKey: "ToDo Title") ?? "Default Title"
+    
+        let defaultDescription = UserDefaults.standard.string(forKey: "ToDo Description") ?? "Default Description"
+     
+        let defaultPriority = UserDefaults.standard.integer(forKey: "ToDo Priority")
         
         let alertController = UIAlertController(title: "New ToDo", message: "Enter your todo item", preferredStyle: .alert)
         
         // If appropriate, configure the new managed object.
-        alertController.addTextField {(titleText: UITextField) in titleText.text = defaultTitle }
-        alertController.addTextField {(descriptionText: UITextField) in descriptionText.text = defaultDescription }
-        alertController.addTextField {(priorityText: UITextField) in priorityText.text = defaultPriority.description}
+        alertController.addTextField {(titleText: UITextField) in
+            titleText.text = defaultTitle
+            titleText.placeholder = "title"
+        }
+        alertController.addTextField {(descriptionText: UITextField) in
+            descriptionText.text = defaultDescription
+            descriptionText.placeholder = "Descrioption"
+        }
+        alertController.addTextField {(priorityText: UITextField) in
+            priorityText.text = defaultPriority.description
+            priorityText.placeholder = "Priority"
+        }
         
         alertController.addAction(UIAlertAction(title: "Add", style: .default, handler: { (sender: UIAlertAction) in
             let newToDo = ToDo(context: context)
@@ -106,7 +109,9 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
+        
         let toDo = fetchedResultsController.object(at: indexPath)
         configureCell(cell, withToDo: toDo)
         return cell
@@ -135,7 +140,8 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
 
     func configureCell(_ cell: UITableViewCell, withToDo toDo: ToDo) {
         cell.textLabel!.text = toDo.title!.description
-        cell.detailTextLabel!.text = "\(toDo.priorityNumber)" + toDo.toDoDescription!.description
+        
+        cell.detailTextLabel!.text = "\(toDo.priorityNumber): " + toDo.toDoDescription!.description
     }
 
     // MARK: - Fetched results controller
@@ -151,7 +157,7 @@ class MasterViewController: UITableViewController, NSFetchedResultsControllerDel
         fetchRequest.fetchBatchSize = 20
         
         // Edit the sort key as appropriate.
-        let sortDescriptor = NSSortDescriptor(key: "title", ascending: false)
+        let sortDescriptor = NSSortDescriptor(key: "title", ascending: true)
         
         fetchRequest.sortDescriptors = [sortDescriptor]
         
